@@ -1,8 +1,10 @@
 # a3
-a3 - appraisal asset assistant  
-Working flow: Upload redbook image then receive home's valuation  
+# a3 - appraisal asset assistant  
 
-I/ source tree:  
+## Working flow: Upload redbook image then receive home's valuation  
+
+### I/ source tree:  
+
 a3/  
 ├── site/ # website, documents, public statics  
 │   └── wrangler.toml  
@@ -11,16 +13,17 @@ a3/
 ├── api/ # backend  
 │   ├── wrangler.toml  
 │   ├── package.json  
-│   └── src/
-│       └── main.ts    
-└── auth/ # authencation service  
+│   └── src/  
+│       └── main.ts  
+└── auth/ # authencation service   
     ├── wrangler.toml  
     ├── package.json  
     └── src/  
         └── main.ts  
 
-2/ Used Techologies:  
+### II/ Used Techologies:  
+
 Frontend: React.js  
 Backend: Express.js / AWS Bedrock  
 Database: NeonSQL  
-devsecops: github, cloudflare   
+devsecops: github, cloudflare  
