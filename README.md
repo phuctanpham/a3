@@ -13,14 +13,16 @@ a3/
 │   └── wrangler.toml  
 ├── api/ # backend  
 │   ├── wrangler.toml  
-│   ├── package.json  
+│   ├── package.json
+│   ├── dist/
 │   └── src/  
 │       └── main.ts  
 └── auth/ # authencation service   
-    ├── wrangler.toml  
-    ├── package.json  
-    └── src/  
-        └── main.ts  
+│   ├── wrangler.toml  
+│   ├── package.json
+│   ├── dist/
+│   └── src/  
+│       └── main.ts  
 ```
 
 ### II/ Used Techologies:  
