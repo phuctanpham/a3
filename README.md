@@ -2,10 +2,12 @@
 
 ## Working flow: Upload redbook image then receive home's valuation  
 
-site: appraiser.dev.pages  
-app: vpbank.dev.pages  
+```
+site: appraiser.pages.dev  
+app: vpbank.pages.dev  
 api: api.vpbank.workers.dev  
 auth: auth.vpbank.workers.dev  
+```
 
 ### I/ source tree:  
 
