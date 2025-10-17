@@ -30,8 +30,9 @@ a3/
 ```
 
 ### II/ Used Techologies:  
-
-Frontend: React.js  
-Backend: Express.js / AWS Bedrock  
-Database: NeonSQL  
-devsecops: github, cloudflare  
+```
+Frontend: React.js    
+Backend: Express.js / AWS Bedrock  / AWS SES  
+Database: NeonSQL  / AWS S3  
+devsecops: github, cloudflare    
+```
