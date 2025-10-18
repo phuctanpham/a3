@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - preview
-      - 'devdev/**'
+      - 'dev/**'
   pull_request:
     branches:
       - main
