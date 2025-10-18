@@ -12,49 +12,24 @@ jobs:
   validate-secrets:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Cloudflare API Token
+      - uses: actions/checkout@v4
+      
+      - name: Check Secrets Existence
         run: |
           if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
             echo "❌ Error: CLOUDFLARE_API_TOKEN secret is not set"
             exit 1
           fi
-          echo "✅ CLOUDFLARE_API_TOKEN is set"
-      
-      - name: Check Cloudflare Account ID
-        run: |
           if [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
             echo "❌ Error: CLOUDFLARE_ACCOUNT_ID secret is not set"
             exit 1
           fi
-          echo "✅ CLOUDFLARE_ACCOUNT_ID is set"
+          echo "✅ GitHub secrets are configured"
       
-      - name: Validate API Token
+      - name: Verify Cloudflare API Credentials
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            "https://api.cloudflare.com/client/v4/user/tokens/verify")
-          
-          if [ "$response" = "200" ]; then
-            echo "✅ API Token is valid"
-          else
-            echo "❌ API Token validation failed with status: $response"
-            exit 1
-          fi
-      
-      - name: Verify Account Access
-        run: |
-          response=$(curl -s -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}")
-          
-          success=$(echo "$response" | grep -o '"success":[^,]*' | cut -d':' -f2)
-          
-          if [ "$success" = "true" ]; then
-            echo "✅ Account access verified"
-          else
-            echo "❌ Cannot access account. Response:"
-            echo "$response"
-            exit 1
-          fi
+          chmod +x .github/utils/cloudflare.sh
+          .github/utils/cloudflare.sh "${{ secrets.CLOUDFLARE_API_TOKEN }}" "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
 
   detect-changes:
     needs: validate-secrets
