@@ -40,8 +40,12 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     return 1
 fi
 
-# Check if there are any changes
-if git diff --quiet && git diff --cached --quiet; then
+# Check if there are any changes (including untracked files)
+MODIFIED_FILES=$(git diff --name-only)
+STAGED_FILES=$(git diff --cached --name-only)
+UNTRACKED_FILES=$(git ls-files --others --exclude-standard)
+
+if [ -z "$MODIFIED_FILES" ] && [ -z "$STAGED_FILES" ] && [ -z "$UNTRACKED_FILES" ]; then
     print_warning "No changes detected in the repository!"
     exit_script "Nothing to commit."
     return 0
@@ -92,7 +96,6 @@ print_info "Verifying write permissions..."
 CURRENT_BRANCH=$(git branch --show-current)
 
 # Try to check if we can push to the current branch
-# We'll do this by checking if we can fetch and if the repo allows pushes
 git fetch origin > /dev/null 2>&1
 
 # Check if we have push access by examining git capabilities
@@ -108,7 +111,7 @@ if git ls-remote --heads origin > /dev/null 2>&1; then
             print_warning "You do not have write access to this repository."
             echo
             echo "Possible reasons:"
-            echo "  1. You don't have push access to 'asstus-official/asstus-sites'"
+            echo "  1. You don't have push access to the repository"
             echo "  2. The branch is protected and requires review"
             echo "  3. Your authentication token lacks write permissions"
             echo
@@ -174,24 +177,43 @@ esac
 print_success "Working on branch: $SELECTED_BRANCH"
 echo
 
-# Show changed files
-print_info "Changed files:"
-CHANGED_FILES_LIST=$(git status --short)
+# Show changed files with better categorization
+print_info "Repository status:"
+echo
 
-if [ -z "$CHANGED_FILES_LIST" ]; then
+if [ -n "$UNTRACKED_FILES" ]; then
+    echo -e "${YELLOW}Untracked files (new):${NC}"
+    echo "$UNTRACKED_FILES" | sed 's/^/  ?? /'
+    echo
+fi
+
+if [ -n "$MODIFIED_FILES" ]; then
+    echo -e "${YELLOW}Modified files:${NC}"
+    echo "$MODIFIED_FILES" | sed 's/^/   M /'
+    echo
+fi
+
+if [ -n "$STAGED_FILES" ]; then
+    echo -e "${GREEN}Staged files:${NC}"
+    echo "$STAGED_FILES" | sed 's/^/   A /'
+    echo
+fi
+
+# Get all files that need attention
+ALL_CHANGED_FILES=$(git status --short)
+
+if [ -z "$ALL_CHANGED_FILES" ]; then
     print_warning "No changed files found!"
     exit_script "Nothing to commit."
     return 0
 fi
 
-echo "$CHANGED_FILES_LIST"
-echo
-
 # Ask which files to add
 print_info "Which files do you want to add?"
-echo "  1) Add all changed files"
-echo "  2) Select specific files by number"
-read -p "Enter choice (1-2): " file_choice
+echo "  1) Add all files (tracked + untracked)"
+echo "  2) Add only tracked files (modified/deleted)"
+echo "  3) Select specific files by number"
+read -p "Enter choice (1-3): " file_choice
 
 case $file_choice in
     1)
@@ -199,6 +221,10 @@ case $file_choice in
         CHANGED_FILES=$(git diff --cached --name-only | tr '\n' ', ' | sed 's/,$//')
         ;;
     2)
+        git add -u
+        CHANGED_FILES=$(git diff --cached --name-only | tr '\n' ', ' | sed 's/,$//')
+        ;;
+    3)
         # Create an array of changed files
         mapfile -t FILES_ARRAY < <(git status --short | awk '{print $2}')
         
@@ -361,11 +387,11 @@ if [ $PUSH_EXIT_CODE -ne 0 ]; then
     print_error "Push failed!"
     echo
     print_warning "Common solutions:"
-    echo "  1. Check if you have permission to push to 'asstus-official/asstus-sites'"
+    echo "  1. Check if you have permission to push to the repository"
     echo "  2. If you forked the repo, push to your fork instead:"
-    echo "     git remote set-url origin https://github.com/YOUR_USERNAME/asstus-sites.git"
+    echo "     git remote set-url origin https://github.com/YOUR_USERNAME/repo-name.git"
     echo "  3. Use SSH instead of HTTPS:"
-    echo "     git remote set-url origin git@github.com:asstus-official/asstus-sites.git"
+    echo "     git remote set-url origin git@github.com:username/repo-name.git"
     echo "  4. Generate a Personal Access Token with 'repo' permissions at:"
     echo "     https://github.com/settings/tokens"
     echo
@@ -392,3 +418,10 @@ SHORT_HASH=$(git rev-parse --short HEAD)
 
 print_info "Commit: ${GREEN}${SHORT_HASH}${NC}"
 echo
+
+# Show remote URL for reference
+print_info "Remote: ${BLUE}${REMOTE_URL}${NC}"
+echo
+
+print_success "All done! 🚀"
+exit_script "Script completed successfully."
