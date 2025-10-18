@@ -107,12 +107,29 @@ jobs:
         working-directory: ./app
         run: npm run build
       
+      - name: Check build output
+        working-directory: ./app
+        run: |
+          echo "Checking for build directories..."
+          if [ -d "dist" ]; then
+            echo "✅ Found dist directory"
+            BUILD_DIR="dist"
+          elif [ -d "build" ]; then
+            echo "✅ Found build directory"
+            BUILD_DIR="build"
+          else
+            echo "❌ No build output found"
+            ls -la
+            exit 1
+          fi
+          echo "BUILD_DIR=$BUILD_DIR" >> $GITHUB_ENV
+      
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./build --project-name=app
+          command: pages deploy ./${{ env.BUILD_DIR }} --project-name=app
           workingDirectory: ./app
 
   deploy-api:
