@@ -25,22 +25,7 @@ jobs:
             exit 1
           fi
           echo "✅ Cloudflare secrets are configured"
-      
-      - name: Check AWS Secrets
-        run: |
-          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
-            echo "⚠️ Warning: AWS_ACCESS_KEY_ID secret is not set (needed for cron deployment)"
-          fi
-          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
-            echo "⚠️ Warning: AWS_SECRET_ACCESS_KEY secret is not set (needed for cron deployment)"
-          fi
-          if [ -z "${{ secrets.AWS_REGION }}" ]; then
-            echo "⚠️ Warning: AWS_REGION secret is not set (needed for cron deployment)"
-          fi
-          if [ -z "${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}" ]; then
-            echo "⚠️ Warning: AWS_LAMBDA_FUNCTION_NAME secret is not set (needed for cron deployment)"
-          fi
-          echo "✅ Secret validation complete"
+  
       
       - name: Verify Cloudflare API Credentials
         run: |
