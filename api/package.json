@@ -3,13 +3,14 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-      "dev": "wrangler dev",
-      "deploy": "wrangler deploy"
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy"
     },
     "dependencies": {
-      "express": "^4.18.2"
+        "hono": "^4.0.0"
     },
     "devDependencies": {
-      "wrangler": "^3.0.0"
+        "@cloudflare/workers-types": "^4.0.0",
+        "wrangler": "^4.43.0"
     }
-  }
+}

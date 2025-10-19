@@ -2,7 +2,6 @@
 name = "auth"
 main = "src/main.ts"
 compatibility_date = "2025-10-17"
-node_compat = true
 
 [vars]
 ENVIRONMENT = "production"
