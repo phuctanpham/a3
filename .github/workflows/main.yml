@@ -25,7 +25,22 @@ jobs:
             exit 1
           fi
           echo "✅ Cloudflare secrets are configured"
-  
+      
+      - name: Check AWS Secrets
+        run: |
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
+            echo "⚠️ Warning: AWS_ACCESS_KEY_ID secret is not set (needed for cron deployment)"
+          fi
+          if [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "⚠️ Warning: AWS_SECRET_ACCESS_KEY secret is not set (needed for cron deployment)"
+          fi
+          if [ -z "${{ secrets.AWS_REGION }}" ]; then
+            echo "⚠️ Warning: AWS_REGION secret is not set (needed for cron deployment)"
+          fi
+          if [ -z "${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}" ]; then
+            echo "⚠️ Warning: AWS_LAMBDA_FUNCTION_NAME secret is not set (needed for cron deployment)"
+          fi
+          echo "✅ Secret validation complete"
       
       - name: Verify Cloudflare API Credentials
         run: |
@@ -33,10 +48,14 @@ jobs:
           .github/utils/cloudflare.sh "${{ secrets.CLOUDFLARE_API_TOKEN }}" "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
       
       - name: Verify AWS Lambda Credentials
-        if: secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
+        continue-on-error: true
         run: |
-          chmod +x .github/utils/aws-lambda.sh
-          .github/utils/aws-lambda.sh "${{ secrets.AWS_ACCESS_KEY_ID }}" "${{ secrets.AWS_SECRET_ACCESS_KEY }}" "${{ secrets.AWS_REGION }}" "${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}"
+          if [ -n "${{ secrets.AWS_ACCESS_KEY_ID }}" ] && [ -n "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            chmod +x .github/utils/aws-lambda.sh
+            .github/utils/aws-lambda.sh "${{ secrets.AWS_ACCESS_KEY_ID }}" "${{ secrets.AWS_SECRET_ACCESS_KEY }}" "${{ secrets.AWS_REGION }}" "${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}"
+          else
+            echo "⚠️  AWS credentials not configured - skipping Lambda verification"
+          fi
 
   detect-changes:
     needs: validate-secrets
@@ -212,7 +231,6 @@ jobs:
         working-directory: ./cron
         run: |
           python -m pip install --upgrade pip
-          rm -rf ./package 
           pip install -r requirements.txt -t ./package
           cp -r *.py ./package/
       
