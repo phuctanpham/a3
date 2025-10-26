@@ -230,18 +230,18 @@ function App() {
         ) : (
           // Desktop: Three columns
           <>
-            <LeftColumn
-              selectedItem={selectedItem}
-              expanded={leftExpanded}
-              onToggleExpand={() => setLeftExpanded(!leftExpanded)}
-            />
-            <MiddleColumn selectedItem={selectedItem} />
             <RightColumn
               items={items}
               selectedItemId={selectedItemId}
               onSelectItem={setSelectedItemId}
               onAddItem={handleAddItem}
               uploadEnabled={config?.UPLOAD_API_CONFIG ?? false}
+              expanded={leftExpanded}
+              onToggleExpand={() => setLeftExpanded(!leftExpanded)}
+            />
+            <MiddleColumn selectedItem={selectedItem} />
+            <LeftColumn
+              selectedItem={selectedItem}
               expanded={rightExpanded}
               onToggleExpand={() => setRightExpanded(!rightExpanded)}
             />
