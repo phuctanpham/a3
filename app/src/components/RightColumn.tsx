@@ -78,7 +78,14 @@ export default function RightColumn({
     }
 
     // TODO: If UPLOAD_API_CONFIG is true, call the upload endpoint via Service Worker proxy
-    // Example: await fetch('/sw-proxy?targetKey=uploadEndpoint', { method: 'POST', body: formData })
+    if (imageFile) {
+      const uploadData = new FormData();
+      uploadData.append('address', formData.address);
+      uploadData.append('certificateNumber', formData.certificateNumber);
+      uploadData.append('owner', formData.owner);
+      uploadData.append('image', imageFile, imageFile.name);
+      // Example: await fetch('/sw-proxy?targetKey=uploadEndpoint', { method: 'POST', body: uploadData });
+    }
     
     onAddItem(formData);
     setFormData({ avatar: '', address: '', certificateNumber: '', owner: '' });
