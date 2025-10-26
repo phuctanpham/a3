@@ -12,7 +12,7 @@ auth: auth.vpbank.workers.dev
 ### I/ source tree:  
 
 ```
-a3/  
+valumind/  
 ├── site/ # website, documents, public statics  
 │   └── wrangler.toml  
 ├── app/ # frontend  
