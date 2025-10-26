@@ -1,6 +1,6 @@
 {
     "name": "Valumind",
-    "short_name": "V",
+    "short_name": "Valumind",
   "description": "Progressive Web Application with Service Worker",
   "start_url": "/",
   "display": "standalone",
