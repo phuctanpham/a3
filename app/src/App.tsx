@@ -71,10 +71,9 @@ function App() {
         setLoadingProgress(100);
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (endpointsData.IDENTITY_PROVIDER_CONFIG) {
+        if (endpointsData.IDENTITY_PROVIDER_CONFIG && authMode === 'guest') {
           setAppState('login');
         } else {
-          setAuthMode('guest');
           setAppState('main');
         }
       } catch (error) {
@@ -85,7 +84,7 @@ function App() {
     };
 
     initApp();
-  }, []);
+  }, [authMode]);
 
   // Handle responsive layout and gestures
   useEffect(() => {
@@ -151,8 +150,6 @@ function App() {
 
   const handleSelectItem = (id: string | null) => {
     setSelectedItemId(id);
-    // Reset tab to 'detail' when a new item is selected
-    // This logic will be handled within MiddleColumn component
   };
   
   const selectedItem = items.find(item => item.id === selectedItemId);
@@ -162,23 +159,6 @@ function App() {
       <div className="loading-screen">
         <img src="/logo.svg" alt="Logo" className="loading-logo" />
         <div className="progress-bar"><div className="progress-fill" style={{ width: `${loadingProgress}%` }} /></div>
-      </div>
-    );
-  }
-
-  if (appState === 'login') {
-    return (
-      <div className="login-screen">
-        <div className="login-container">
-          <img src="/logo.svg" alt="Logo" className="login-logo" />
-          <h2>Welcome</h2>
-          <div className="login-form">
-            <input type="email" placeholder="Enter your email" className="login-input" />
-            <button className="login-button">Send OTP</button>
-            <div className="login-divider">or</div>
-            <button className="guest-button" onClick={() => handleLogin('guest')}>Continue as Guest</button>
-          </div>
-        </div>
       </div>
     );
   }
@@ -202,6 +182,23 @@ function App() {
         )}
       </div>
       <FloatingBubble authMode={authMode} onAdd={handleAddItem} onLoginRequest={() => setAppState('login')} itemsLength={items.length} />
+      
+      {appState === 'login' && (
+        <div className="notification-modal">
+          <div className="notification-content">
+            <img src="/logo.svg" alt="Logo" className="login-logo" />
+            <h2>Welcome</h2>
+            <div className="login-form">
+              <input type="email" placeholder="Enter your email" className="login-input" />
+              <button className="login-button">Send OTP</button>
+              <div className="login-divider">or</div>
+              <button className="guest-button" onClick={() => handleLogin('guest')}>Continue as Guest</button>
+              <button className="btn" onClick={() => setAppState('main')}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showApiNotification && <div className="notification-modal"><div className="notification-content"><h3>Feature Disabled</h3><p>API endpoint not configured.</p><button onClick={() => setShowApiNotification(false)}>OK</button></div></div>}
     </div>
   );
