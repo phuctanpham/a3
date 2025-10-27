@@ -158,11 +158,29 @@ function App() {
   const selectedItem = items.find(item => item.id === selectedItemId);
 
   if (appState === 'loading') {
-    return <div className="loading-screen"><img src="/logo.svg" alt="Logo" /><div className="progress-bar"><div style={{ width: `${loadingProgress}%` }} /></div></div>;
+    return (
+      <div className="loading-screen">
+        <img src="/logo.svg" alt="Logo" className="loading-logo" />
+        <div className="progress-bar"><div className="progress-fill" style={{ width: `${loadingProgress}%` }} /></div>
+      </div>
+    );
   }
 
   if (appState === 'login') {
-    return <div className="login-screen"><div className="login-container"><img src="/logo.svg" alt="Logo" /><h2>Welcome</h2><div className="login-form"><input type="email" placeholder="Enter your email" /><button>Send OTP</button><div>or</div><button onClick={() => handleLogin('guest')}>Continue as Guest</button></div></div></div>;
+    return (
+      <div className="login-screen">
+        <div className="login-container">
+          <img src="/logo.svg" alt="Logo" className="login-logo" />
+          <h2>Welcome</h2>
+          <div className="login-form">
+            <input type="email" placeholder="Enter your email" className="login-input" />
+            <button className="login-button">Send OTP</button>
+            <div className="login-divider">or</div>
+            <button className="guest-button" onClick={() => handleLogin('guest')}>Continue as Guest</button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
