@@ -15,6 +15,7 @@ interface RightColumnProps {
   items: CellItem[];
   selectedItemId: string | null;
   onSelectItem: (id: string) => void;
+  onSync: (id: string) => void;
   expanded?: boolean;
   onToggleExpand?: () => void;
 }
@@ -23,6 +24,7 @@ export default function RightColumn({
   items,
   selectedItemId,
   onSelectItem,
+  onSync,
   expanded = true,
   onToggleExpand,
 }: RightColumnProps) {
@@ -90,7 +92,27 @@ export default function RightColumn({
                   }
                 }}
               >
-                <div className={`sync-status ${item.syncStatus}`} />
+                <div className={`sync-status ${item.syncStatus}`}>
+                  {item.syncStatus === 'pending' && (
+                    <button
+                      className="sync-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSync(item.id);
+                      }}
+                      aria-label="Sync item"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path
+                          d="M21.5 2v6h-6M2.5 22v-6h6M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12z"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 <div className="item-avatar">
                   {item.avatar ? (
                     <img src={item.avatar} alt={item.owner} />

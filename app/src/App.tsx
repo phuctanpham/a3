@@ -10,7 +10,6 @@ import './App.css';
 interface EndpointsConfig {
   IDENTITY_PROVIDER_CONFIG: boolean;
   API_ENDPOINT_CONFIG: boolean;
-  // TODO: Add other endpoint keys as needed
   apiEndpoint?: string;
   authEndpoint?: string;
 }
@@ -35,41 +34,42 @@ function App() {
   const [config, setConfig] = useState<EndpointsConfig | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(0);
   
-  const [items, setItems] = useState<CellItem[]>([]);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [items, setItems] = useState<CellItem[]>(() => {
+    const savedItems = localStorage.getItem('items');
+    return savedItems ? JSON.parse(savedItems) : [];
+  });
   
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [mobileColumn, setMobileColumn] = useState<'left' | 'middle' | 'right'>('right');
   const [leftExpanded, setLeftExpanded] = useState(true);
   const [rightExpanded, setRightExpanded] = useState(true);
+  const [showApiNotification, setShowApiNotification] = useState(false);
+
+  // Persist items to local storage
+  useEffect(() => {
+    localStorage.setItem('items', JSON.stringify(items));
+  }, [items]);
 
   // Initialize app: fetch config, register SW, verify caching
   useEffect(() => {
     const initApp = async () => {
       try {
-        // Step 1: Fetch endpoints.json (33% progress)
-        setLoadingProgress(33);
+        setLoadingProgress(33); // Step 1
         const endpointsResponse = await fetch('/endpoints.json');
         const endpointsData: EndpointsConfig = await endpointsResponse.json();
         setConfig(endpointsData);
 
-        // Step 2: Wait for Service Worker registration (66% progress)
-        setLoadingProgress(66);
-        await new Promise((resolve) => {
-          if (navigator.serviceWorker.controller) {
-            resolve(true);
-          } else {
-            navigator.serviceWorker.addEventListener('controllerchange', () => resolve(true));
-            setTimeout(() => resolve(true), 2000); // Fallback timeout
-          }
+        setLoadingProgress(66); // Step 2
+        await new Promise(resolve => {
+          if (navigator.serviceWorker.controller) return resolve(true);
+          navigator.serviceWorker.addEventListener('controllerchange', () => resolve(true));
+          setTimeout(() => resolve(true), 2000); // Fallback
         });
 
-        // Step 3: Verify asset caching version (100% progress)
-        setLoadingProgress(100);
-        // TODO: Implement latest-version check against cached assets
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        setLoadingProgress(100); // Step 3
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Determine next state based on config
         if (endpointsData.IDENTITY_PROVIDER_CONFIG) {
           setAppState('login');
         } else {
@@ -78,7 +78,6 @@ function App() {
         }
       } catch (error) {
         console.error('App initialization failed:', error);
-        // Fallback to guest mode on error
         setAuthMode('guest');
         setAppState('main');
       }
@@ -87,39 +86,22 @@ function App() {
     initApp();
   }, []);
 
-  // Handle responsive layout
+  // Handle responsive layout and gestures
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
-  // Handle mobile swipe gestures
-  useEffect(() => {
     if (!isMobile) return;
 
     let touchStartX = 0;
-    let touchEndX = 0;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.changedTouches[0].screenX;
-    };
-
+    const handleTouchStart = (e: TouchEvent) => { touchStartX = e.changedTouches[0].screenX; };
     const handleTouchEnd = (e: TouchEvent) => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    };
-
-    const handleSwipe = () => {
+      const touchEndX = e.changedTouches[0].screenX;
       const swipeThreshold = 50;
       if (touchStartX - touchEndX > swipeThreshold) {
-        // Swipe left
         if (mobileColumn === 'right') setMobileColumn('middle');
         else if (mobileColumn === 'middle') setMobileColumn('left');
       } else if (touchEndX - touchStartX > swipeThreshold) {
-        // Swipe right
         if (mobileColumn === 'left') setMobileColumn('middle');
         else if (mobileColumn === 'middle') setMobileColumn('right');
       }
@@ -129,6 +111,7 @@ function App() {
     document.addEventListener('touchend', handleTouchEnd);
 
     return () => {
+      window.removeEventListener('resize', handleResize);
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);
     };
@@ -140,11 +123,7 @@ function App() {
   };
 
   const updateItemSyncStatus = (itemId: string, syncStatus: SyncStatus) => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId ? { ...item, syncStatus } : item
-      )
-    );
+    setItems(prev => prev.map(item => item.id === itemId ? { ...item, syncStatus } : item));
   };
 
   const handleAddItem = (newItem: Omit<CellItem, 'id' | 'syncStatus'>) => {
@@ -153,32 +132,38 @@ function App() {
       ...newItem,
       syncStatus: 'pending',
     };
-    setItems((prev) => [...prev, item]);
-
-    if (config?.API_ENDPOINT_CONFIG) {
-      // Simulate API call
-      setTimeout(() => {
-        const isSuccess = Math.random() > 0.2; // 80% success rate
-        updateItemSyncStatus(item.id, isSuccess ? 'synced' : 'failed');
-      }, 2000);
-    }
+    setItems(prev => [...prev, item]);
   };
 
-  const selectedItem = items.find((item) => item.id === selectedItemId);
+  const handleSync = (itemId: string) => {
+    if (!config?.API_ENDPOINT_CONFIG) {
+      setShowApiNotification(true);
+      return;
+    }
+    
+    const itemToSync = items.find(item => item.id === itemId);
+    if (!itemToSync) return;
 
-  // Loading screen
+    // Simulate API call
+    updateItemSyncStatus(itemId, 'pending');
+    setTimeout(() => {
+      const isSuccess = Math.random() > 0.2; // 80% success rate
+      updateItemSyncStatus(itemId, isSuccess ? 'synced' : 'failed');
+    }, 2000);
+  };
+  
+  const selectedItem = items.find(item => item.id === selectedItemId);
+
+  // Render app states
   if (appState === 'loading') {
     return (
       <div className="loading-screen">
         <img src="/logo.svg" alt="Logo" className="loading-logo" />
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${loadingProgress}%` }} />
-        </div>
+        <div className="progress-bar"><div className="progress-fill" style={{ width: `${loadingProgress}%` }} /></div>
       </div>
     );
   }
 
-  // Login screen
   if (appState === 'login') {
     return (
       <div className="login-screen">
@@ -186,81 +171,32 @@ function App() {
           <img src="/logo.svg" alt="Logo" className="login-logo" />
           <h2>Welcome</h2>
           <div className="login-form">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="login-input"
-              aria-label="Email address"
-            />
-            <button className="login-button" aria-label="Login with OTP">
-              Send OTP
-            </button>
+            <input type="email" placeholder="Enter your email" className="login-input" />
+            <button className="login-button">Send OTP</button>
             <div className="login-divider">or</div>
-            <button
-              className="guest-button"
-              onClick={() => handleLogin('guest')}
-              aria-label="Continue as guest"
-            >
-              Continue as Guest
-            </button>
+            <button className="guest-button" onClick={() => handleLogin('guest')}>Continue as Guest</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // Main screen
   return (
     <div className="app">
-      <TopBar
-        onMenuClick={() => {
-          // Toggle menu or navigation
-        }}
-        onSearch={(query) => {
-          console.log('Search:', query);
-        }}
-      />
+      <TopBar onMenuClick={() => {}} onSearch={() => {}} />
       
       <div className={`main-content ${isMobile ? 'mobile' : 'desktop'}`}>
         {isMobile ? (
-          // Mobile: Single column with swipe navigation
           <>
-            {mobileColumn === 'left' && (
-              <LeftColumn
-                selectedItem={selectedItem}
-                onNavigate={() => setMobileColumn('middle')}
-              />
-            )}
-            {mobileColumn === 'middle' && (
-              <MiddleColumn
-                selectedItem={selectedItem}
-                onNavigate={() => setMobileColumn('right')}
-              />
-            )}
-            {mobileColumn === 'right' && (
-              <RightColumn
-                items={items}
-                selectedItemId={selectedItemId}
-                onSelectItem={setSelectedItemId}
-              />
-            )}
+            {mobileColumn === 'left' && <LeftColumn selectedItem={selectedItem} onNavigate={() => setMobileColumn('middle')} />}
+            {mobileColumn === 'middle' && <MiddleColumn selectedItem={selectedItem} onNavigate={() => setMobileColumn('right')} />}
+            {mobileColumn === 'right' && <RightColumn items={items} selectedItemId={selectedItemId} onSelectItem={setSelectedItemId} onSync={handleSync} />}
           </>
         ) : (
-          // Desktop: Three columns
           <>
-            <RightColumn
-              items={items}
-              selectedItemId={selectedItemId}
-              onSelectItem={setSelectedItemId}
-              expanded={leftExpanded}
-              onToggleExpand={() => setLeftExpanded(!leftExpanded)}
-            />
+            <RightColumn items={items} selectedItemId={selectedItemId} onSelectItem={setSelectedItemId} onSync={handleSync} expanded={leftExpanded} onToggleExpand={() => setLeftExpanded(!leftExpanded)} />
             <MiddleColumn selectedItem={selectedItem} />
-            <LeftColumn
-              selectedItem={selectedItem}
-              expanded={rightExpanded}
-              onToggleExpand={() => setRightExpanded(!rightExpanded)}
-            />
+            <LeftColumn selectedItem={selectedItem} expanded={rightExpanded} onToggleExpand={() => setRightExpanded(!rightExpanded)} />
           </>
         )}
       </div>
@@ -268,10 +204,21 @@ function App() {
       <FloatingBubble
         authMode={authMode}
         onAdd={handleAddItem}
-        apiEnabled={config?.API_ENDPOINT_CONFIG ?? false}
         onLoginRequest={() => setAppState('login')}
         itemsLength={items.length}
       />
+
+      {showApiNotification && (
+        <div className="notification-modal">
+          <div className="notification-content">
+            <h3>Feature Disabled</h3>
+            <p>This feature is currently disabled because the API endpoint is not configured.</p>
+            <div className="notification-actions">
+              <button className="btn" onClick={() => setShowApiNotification(false)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

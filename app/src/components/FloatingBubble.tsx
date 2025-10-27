@@ -4,7 +4,6 @@ import './FloatingBubble.css';
 interface FloatingBubbleProps {
   authMode: 'guest' | 'authenticated';
   onAdd: (item: { avatar: string; address: string; certificateNumber: string; owner: string }) => void;
-  apiEnabled: boolean;
   onLoginRequest: () => void;
   itemsLength: number;
 }
@@ -12,13 +11,11 @@ interface FloatingBubbleProps {
 export default function FloatingBubble({
   authMode,
   onAdd,
-  apiEnabled,
   onLoginRequest,
   itemsLength,
 }: FloatingBubbleProps) {
   const [showModal, setShowModal] = useState(false);
   const [showGuestNotification, setShowGuestNotification] = useState(false);
-  const [showApiNotification, setShowApiNotification] = useState(false);
   const [formData, setFormData] = useState({
     avatar: '',
     address: '',
@@ -27,9 +24,7 @@ export default function FloatingBubble({
   });
 
   const handleClick = () => {
-    if (!apiEnabled) {
-      setShowApiNotification(true);
-    } else if (authMode === 'guest' && itemsLength > 0) {
+    if (authMode === 'guest' && itemsLength > 0) {
       setShowGuestNotification(true);
     } else {
       setShowModal(true);
@@ -65,20 +60,6 @@ export default function FloatingBubble({
           <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </button>
-
-      {showApiNotification && (
-        <div className="notification-modal">
-          <div className="notification-content">
-            <h3>Feature Disabled</h3>
-            <p>This feature is currently disabled because the API endpoint is not configured.</p>
-            <div className="notification-actions">
-              <button className="btn" onClick={() => setShowApiNotification(false)}>
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showGuestNotification && (
         <div className="notification-modal">
