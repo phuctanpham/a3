@@ -4,7 +4,6 @@ import './FloatingBubble.css';
 interface FloatingBubbleProps {
   authMode: 'guest' | 'authenticated';
   onAdd: (item: { avatar: string; address: string; certificateNumber: string; owner: string }) => void;
-  apiEnabled: boolean;
   onLoginRequest: () => void;
   itemsLength: number;
 }
@@ -12,7 +11,6 @@ interface FloatingBubbleProps {
 export default function FloatingBubble({
   authMode,
   onAdd,
-  apiEnabled,
   onLoginRequest,
   itemsLength,
 }: FloatingBubbleProps) {

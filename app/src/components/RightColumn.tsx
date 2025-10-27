@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { SyncStatus } from '../App';
+import type { SyncStatus } from '../App';
 import './RightColumn.css';
 
 interface CellItem {
