@@ -65,7 +65,7 @@ export default function FloatingBubble({
         <div className="notification-modal">
           <div className="notification-content">
             <h3>Guest Mode</h3>
-            <p>Creation is blocked in guest mode. Please log in to add items.</p>
+            <p>New creation is litmited in guest mode. Please log in to add items.</p>
             <div className="notification-actions">
               <button className="btn btn-primary" onClick={onLoginRequest}>
                 Login

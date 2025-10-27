@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import DetailTab from './DetailTab';
+import ValidationTab from './ValidationTab';
 import './MiddleColumn.css';
 
 interface CellItem {
@@ -11,12 +14,21 @@ interface CellItem {
 interface MiddleColumnProps {
   selectedItem: CellItem | undefined;
   onNavigate?: () => void;
+  onUpdateItem: (id: string, field: string, value: string) => void;
+  apiValid: boolean;
 }
 
-export default function MiddleColumn({ selectedItem, onNavigate }: MiddleColumnProps) {
+export default function MiddleColumn({
+  selectedItem,
+  onNavigate,
+  onUpdateItem,
+  apiValid,
+}: MiddleColumnProps) {
+  const [activeTab, setActiveTab] = useState('detail');
+
   if (!selectedItem) {
     return (
-      <div className="middle-column">
+      <div className="middle-column empty-state-container">
         <div className="empty-state">
           <h2>No Item Selected</h2>
           <p>Select an item from the right panel to view details</p>
@@ -30,39 +42,31 @@ export default function MiddleColumn({ selectedItem, onNavigate }: MiddleColumnP
     );
   }
 
+  const handleUpdate = (field: string, value: string) => {
+    onUpdateItem(selectedItem.id, field, value);
+  };
+
   return (
     <div className="middle-column">
-      <div className="item-detail">
-        <div className="detail-header">
-          <h2>Item Details</h2>
-        </div>
-        <div className="detail-content">
-          <div className="detail-avatar-large">
-            {selectedItem.avatar ? (
-              <img src={selectedItem.avatar} alt={selectedItem.owner} />
-            ) : (
-              <div className="avatar-placeholder-large">No Image</div>
-            )}
-          </div>
-          <div className="detail-fields">
-            <div className="detail-field">
-              <label>Address</label>
-              <p>{selectedItem.address}</p>
-            </div>
-            <div className="detail-field">
-              <label>Certificate Number</label>
-              <p>{selectedItem.certificateNumber}</p>
-            </div>
-            <div className="detail-field">
-              <label>Owner</label>
-              <p>{selectedItem.owner}</p>
-            </div>
-            <div className="detail-field">
-              <label>Item ID</label>
-              <p className="item-id">{selectedItem.id}</p>
-            </div>
-          </div>
-        </div>
+      <div className="tab-navigation">
+        <button
+          className={`tab-button ${activeTab === 'detail' ? 'active' : ''}`}
+          onClick={() => setActiveTab('detail')}
+        >
+          Detail
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'validation' ? 'active' : ''}`}
+          onClick={() => setActiveTab('validation')}
+        >
+          Validation
+        </button>
+      </div>
+      <div className="tab-content">
+        {activeTab === 'detail' && (
+          <DetailTab selectedItem={selectedItem} onUpdate={handleUpdate} />
+        )}
+        {activeTab === 'validation' && <ValidationTab apiValid={apiValid} />}
       </div>
     </div>
   );

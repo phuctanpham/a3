@@ -1,4 +1,4 @@
-# Appraiser
+# Valumind
 
 ## Working flow: Upload redbook image then receive home's valuation  
 

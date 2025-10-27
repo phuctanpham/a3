@@ -45,29 +45,30 @@ function App() {
   const [leftExpanded, setLeftExpanded] = useState(true);
   const [rightExpanded, setRightExpanded] = useState(true);
   const [showApiNotification, setShowApiNotification] = useState(false);
+  const [bulkEditIds, setBulkEditIds] = useState<string[]>([]);
 
   // Persist items to local storage
   useEffect(() => {
     localStorage.setItem('items', JSON.stringify(items));
   }, [items]);
 
-  // Initialize app: fetch config, register SW, verify caching
+  // Initialize app
   useEffect(() => {
     const initApp = async () => {
       try {
-        setLoadingProgress(33); // Step 1
+        setLoadingProgress(33);
         const endpointsResponse = await fetch('/endpoints.json');
         const endpointsData: EndpointsConfig = await endpointsResponse.json();
         setConfig(endpointsData);
 
-        setLoadingProgress(66); // Step 2
+        setLoadingProgress(66);
         await new Promise(resolve => {
           if (navigator.serviceWorker.controller) return resolve(true);
           navigator.serviceWorker.addEventListener('controllerchange', () => resolve(true));
-          setTimeout(() => resolve(true), 2000); // Fallback
+          setTimeout(() => resolve(true), 2000);
         });
 
-        setLoadingProgress(100); // Step 3
+        setLoadingProgress(100);
         await new Promise(resolve => setTimeout(resolve, 500));
 
         if (endpointsData.IDENTITY_PROVIDER_CONFIG) {
@@ -122,10 +123,6 @@ function App() {
     setAppState('main');
   };
 
-  const updateItemSyncStatus = (itemId: string, syncStatus: SyncStatus) => {
-    setItems(prev => prev.map(item => item.id === itemId ? { ...item, syncStatus } : item));
-  };
-
   const handleAddItem = (newItem: Omit<CellItem, 'id' | 'syncStatus'>) => {
     const item: CellItem = {
       id: `item-${Date.now()}`,
@@ -135,90 +132,59 @@ function App() {
     setItems(prev => [...prev, item]);
   };
 
+  const handleUpdateItem = (id: string, field: string, value: string) => {
+    setItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
+  };
+
   const handleSync = (itemId: string) => {
     if (!config?.API_ENDPOINT_CONFIG) {
       setShowApiNotification(true);
       return;
     }
     
-    const itemToSync = items.find(item => item.id === itemId);
-    if (!itemToSync) return;
-
-    // Simulate API call
-    updateItemSyncStatus(itemId, 'pending');
+    setItems(prev => prev.map(item => item.id === itemId ? { ...item, syncStatus: 'pending' } : item));
     setTimeout(() => {
-      const isSuccess = Math.random() > 0.2; // 80% success rate
-      updateItemSyncStatus(itemId, isSuccess ? 'synced' : 'failed');
+      const isSuccess = Math.random() > 0.2;
+      setItems(prev => prev.map(item => item.id === itemId ? { ...item, syncStatus: isSuccess ? 'synced' : 'failed' } : item));
     }, 2000);
+  };
+
+  const handleSelectItem = (id: string | null) => {
+    setSelectedItemId(id);
+    // Reset tab to 'detail' when a new item is selected
+    // This logic will be handled within MiddleColumn component
   };
   
   const selectedItem = items.find(item => item.id === selectedItemId);
 
-  // Render app states
   if (appState === 'loading') {
-    return (
-      <div className="loading-screen">
-        <img src="/logo.svg" alt="Logo" className="loading-logo" />
-        <div className="progress-bar"><div className="progress-fill" style={{ width: `${loadingProgress}%` }} /></div>
-      </div>
-    );
+    return <div className="loading-screen"><img src="/logo.svg" alt="Logo" /><div className="progress-bar"><div style={{ width: `${loadingProgress}%` }} /></div></div>;
   }
 
   if (appState === 'login') {
-    return (
-      <div className="login-screen">
-        <div className="login-container">
-          <img src="/logo.svg" alt="Logo" className="login-logo" />
-          <h2>Welcome</h2>
-          <div className="login-form">
-            <input type="email" placeholder="Enter your email" className="login-input" />
-            <button className="login-button">Send OTP</button>
-            <div className="login-divider">or</div>
-            <button className="guest-button" onClick={() => handleLogin('guest')}>Continue as Guest</button>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="login-screen"><div className="login-container"><img src="/logo.svg" alt="Logo" /><h2>Welcome</h2><div className="login-form"><input type="email" placeholder="Enter your email" /><button>Send OTP</button><div>or</div><button onClick={() => handleLogin('guest')}>Continue as Guest</button></div></div></div>;
   }
 
   return (
     <div className="app">
       <TopBar onMenuClick={() => {}} onSearch={() => {}} />
-      
       <div className={`main-content ${isMobile ? 'mobile' : 'desktop'}`}>
         {isMobile ? (
           <>
             {mobileColumn === 'left' && <LeftColumn selectedItem={selectedItem} onNavigate={() => setMobileColumn('middle')} />}
-            {mobileColumn === 'middle' && <MiddleColumn selectedItem={selectedItem} onNavigate={() => setMobileColumn('right')} />}
-            {mobileColumn === 'right' && <RightColumn items={items} selectedItemId={selectedItemId} onSelectItem={setSelectedItemId} onSync={handleSync} />}
+            {mobileColumn === 'middle' && <MiddleColumn selectedItem={selectedItem} onUpdateItem={handleUpdateItem} apiValid={config?.API_ENDPOINT_CONFIG ?? false} onNavigate={() => setMobileColumn('right')} />}
+            {mobileColumn === 'right' && <RightColumn items={items} selectedItemId={selectedItemId} onSelectItem={handleSelectItem} onSync={handleSync} onBulkEdit={setBulkEditIds} />}
           </>
         ) : (
           <>
-            <RightColumn items={items} selectedItemId={selectedItemId} onSelectItem={setSelectedItemId} onSync={handleSync} expanded={leftExpanded} onToggleExpand={() => setLeftExpanded(!leftExpanded)} />
-            <MiddleColumn selectedItem={selectedItem} />
+            <RightColumn items={items} selectedItemId={selectedItemId} onSelectItem={handleSelectItem} onSync={handleSync} expanded={leftExpanded} onToggleExpand={() => setLeftExpanded(!leftExpanded)} onBulkEdit={setBulkEditIds} />
+            <MiddleColumn selectedItem={selectedItem} onUpdateItem={handleUpdateItem} apiValid={config?.API_ENDPOINT_CONFIG ?? false} />
             <LeftColumn selectedItem={selectedItem} expanded={rightExpanded} onToggleExpand={() => setRightExpanded(!rightExpanded)} />
           </>
         )}
       </div>
-
-      <FloatingBubble
-        authMode={authMode}
-        onAdd={handleAddItem}
-        onLoginRequest={() => setAppState('login')}
-        itemsLength={items.length}
-      />
-
-      {showApiNotification && (
-        <div className="notification-modal">
-          <div className="notification-content">
-            <h3>Feature Disabled</h3>
-            <p>This feature is currently disabled because the API endpoint is not configured.</p>
-            <div className="notification-actions">
-              <button className="btn" onClick={() => setShowApiNotification(false)}>OK</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <FloatingBubble authMode={authMode} onAdd={handleAddItem} onLoginRequest={() => setAppState('login')} itemsLength={items.length} />
+      {showApiNotification && <div className="notification-modal"><div className="notification-content"><h3>Feature Disabled</h3><p>API endpoint not configured.</p><button onClick={() => setShowApiNotification(false)}>OK</button></div></div>}
     </div>
   );
 }
