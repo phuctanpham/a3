@@ -17,7 +17,7 @@ export default function TopBar({ onMenuClick, onSearch }: TopBarProps) {
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <img src="/vite.svg" alt="Logo" className="topbar-logo" />
+        <img src="/logo.svg" alt="Logo" className="topbar-logo" />
         <form onSubmit={handleSearch} className="search-form">
           <input
             type="search"

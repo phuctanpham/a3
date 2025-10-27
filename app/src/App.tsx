@@ -150,7 +150,7 @@ function App() {
   if (appState === 'loading') {
     return (
       <div className="loading-screen">
-        <img src="/vite.svg" alt="Logo" className="loading-logo" />
+        <img src="/logo.svg" alt="Logo" className="loading-logo" />
         <div className="progress-bar">
           <div className="progress-fill" style={{ width: `${loadingProgress}%` }} />
         </div>
@@ -163,7 +163,7 @@ function App() {
     return (
       <div className="login-screen">
         <div className="login-container">
-          <img src="/vite.svg" alt="Logo" className="login-logo" />
+          <img src="/logo.svg" alt="Logo" className="login-logo" />
           <h2>Welcome</h2>
           <div className="login-form">
             <input

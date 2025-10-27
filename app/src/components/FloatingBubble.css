@@ -1,7 +1,7 @@
 .floating-bubble {
     position: fixed;
     bottom: 2rem;
-    right: 2rem;
+    left: 2rem;
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -41,6 +41,7 @@
     justify-content: center;
     z-index: 1000;
     animation: fadeIn 0.2s ease;
+    backdrop-filter: blur(8px);
   }
   
   @keyframes fadeIn {
@@ -161,7 +162,7 @@
   @media (max-width: 767px) {
     .floating-bubble {
       bottom: 1.5rem;
-      right: 1.5rem;
+      left: 1.5rem;
       width: 56px;
       height: 56px;
     }
