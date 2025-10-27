@@ -222,8 +222,6 @@ function App() {
                 items={items}
                 selectedItemId={selectedItemId}
                 onSelectItem={setSelectedItemId}
-                onAddItem={handleAddItem}
-                uploadEnabled={config?.UPLOAD_API_CONFIG ?? false}
               />
             )}
           </>
@@ -234,8 +232,6 @@ function App() {
               items={items}
               selectedItemId={selectedItemId}
               onSelectItem={setSelectedItemId}
-              onAddItem={handleAddItem}
-              uploadEnabled={config?.UPLOAD_API_CONFIG ?? false}
               expanded={leftExpanded}
               onToggleExpand={() => setLeftExpanded(!leftExpanded)}
             />
@@ -249,14 +245,12 @@ function App() {
         )}
       </div>
 
-      {items.length > 0 && (
-        <FloatingBubble
-          authMode={authMode}
-          onAdd={handleAddItem}
-          uploadEnabled={config?.UPLOAD_API_CONFIG ?? false}
-          onLoginRequest={() => setAppState('login')}
-        />
-      )}
+      <FloatingBubble
+        authMode={authMode}
+        onAdd={handleAddItem}
+        uploadEnabled={config?.UPLOAD_API_CONFIG ?? false}
+        onLoginRequest={() => setAppState('login')}
+      />
     </div>
   );
 }
