@@ -19,6 +19,7 @@ interface RightColumnProps {
   expanded?: boolean;
   onToggleExpand?: () => void;
   onBulkEdit: (ids: string[]) => void;
+  bulkSelectedIds: string[];
 }
 
 const BulkEditingBar = () => (
@@ -35,9 +36,9 @@ export default function RightColumn({
   expanded = true,
   onToggleExpand,
   onBulkEdit,
+  bulkSelectedIds,
 }: RightColumnProps) {
   const [multiSelect, setMultiSelect] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const longPressTimer = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(20);
@@ -60,7 +61,6 @@ export default function RightColumn({
   const handleTouchStart = (id: string) => {
     longPressTimer.current = window.setTimeout(() => {
       setMultiSelect(true);
-      setSelectedItems([id]);
       onBulkEdit([id]);
     }, 500);
   };
@@ -73,10 +73,9 @@ export default function RightColumn({
 
   const handleClick = (id: string) => {
     if (multiSelect) {
-      const newSelectedItems = selectedItems.includes(id)
-        ? selectedItems.filter(item => item !== id)
-        : [...selectedItems, id];
-      setSelectedItems(newSelectedItems);
+      const newSelectedItems = bulkSelectedIds.includes(id)
+        ? bulkSelectedIds.filter(item => item !== id)
+        : [...bulkSelectedIds, id];
       onBulkEdit(newSelectedItems);
     } else {
       onSelectItem(id);
@@ -84,11 +83,11 @@ export default function RightColumn({
   };
 
   useEffect(() => {
-    if (multiSelect && selectedItems.length === 0) {
+    if (multiSelect && bulkSelectedIds.length === 0) {
       setMultiSelect(false);
       onBulkEdit([]);
     }
-  }, [selectedItems, multiSelect, onBulkEdit]);
+  }, [bulkSelectedIds, multiSelect, onBulkEdit]);
 
   return (
     <div className={`right-column ${expanded ? 'expanded' : 'collapsed'}`}>
@@ -103,7 +102,7 @@ export default function RightColumn({
             {items.slice(0, visibleCount).map(item => (
               <div
                 key={item.id}
-                className={`item-cell ${selectedItemId === item.id ? 'selected' : ''} ${selectedItems.includes(item.id) ? 'multi-selected' : ''}`}
+                className={`item-cell ${selectedItemId === item.id ? 'selected' : ''} ${bulkSelectedIds.includes(item.id) ? 'multi-selected' : ''}`}
                 onClick={() => handleClick(item.id)}
                 onTouchStart={() => handleTouchStart(item.id)}
                 onTouchEnd={handleTouchEnd}
