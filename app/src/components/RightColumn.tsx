@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { SyncStatus } from '../App';
 import './RightColumn.css';
 
 interface CellItem {
@@ -7,6 +8,7 @@ interface CellItem {
   address: string;
   certificateNumber: string;
   owner: string;
+  syncStatus: SyncStatus;
 }
 
 interface RightColumnProps {
@@ -27,7 +29,6 @@ export default function RightColumn({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Virtual scrolling: load more items as user scrolls
-  // For simplicity, we'll just show all items; in production, implement virtual list
   const [visibleCount, setVisibleCount] = useState(20);
 
   useEffect(() => {
@@ -89,6 +90,7 @@ export default function RightColumn({
                   }
                 }}
               >
+                <div className={`sync-status ${item.syncStatus}`} />
                 <div className="item-avatar">
                   {item.avatar ? (
                     <img src={item.avatar} alt={item.owner} />

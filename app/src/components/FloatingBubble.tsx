@@ -4,15 +4,17 @@ import './FloatingBubble.css';
 interface FloatingBubbleProps {
   authMode: 'guest' | 'authenticated';
   onAdd: (item: { avatar: string; address: string; certificateNumber: string; owner: string }) => void;
-  uploadEnabled: boolean;
+  apiEnabled: boolean;
   onLoginRequest: () => void;
+  itemsLength: number;
 }
 
 export default function FloatingBubble({
   authMode,
   onAdd,
-  uploadEnabled,
+  apiEnabled,
   onLoginRequest,
+  itemsLength,
 }: FloatingBubbleProps) {
   const [showModal, setShowModal] = useState(false);
   const [showGuestNotification, setShowGuestNotification] = useState(false);
@@ -24,7 +26,7 @@ export default function FloatingBubble({
   });
 
   const handleClick = () => {
-    if (authMode === 'guest') {
+    if (authMode === 'guest' && itemsLength > 0) {
       setShowGuestNotification(true);
     } else {
       setShowModal(true);
@@ -44,15 +46,6 @@ export default function FloatingBubble({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!uploadEnabled) {
-      alert('App under maintenance. Upload is currently disabled.');
-      return;
-    }
-
-    // TODO: Call upload endpoint via Service Worker proxy if UPLOAD_API_CONFIG is true
-    // Example: await fetch('/sw-proxy?targetKey=uploadEndpoint', { method: 'POST', body: ... })
-
     onAdd(formData);
     setFormData({ avatar: '', address: '', certificateNumber: '', owner: '' });
     setShowModal(false);

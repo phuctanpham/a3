@@ -94,7 +94,7 @@ async function handleProxyRequest(request: Request): Promise<Response> {
     
     // Example mapping (replace with real endpoint URLs from config):
     const endpointMap: Record<string, string> = {
-      uploadEndpoint: 'https://api.example.com/upload',
+      apiEndpoint: 'https://api.example.com/v1',
       authEndpoint: 'https://api.example.com/auth',
       // Add more endpoints as needed
     };

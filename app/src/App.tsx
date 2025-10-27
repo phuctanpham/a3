@@ -9,11 +9,13 @@ import './App.css';
 // Types
 interface EndpointsConfig {
   IDENTITY_PROVIDER_CONFIG: boolean;
-  UPLOAD_API_CONFIG: boolean;
+  API_ENDPOINT_CONFIG: boolean;
   // TODO: Add other endpoint keys as needed
-  uploadEndpoint?: string;
+  apiEndpoint?: string;
   authEndpoint?: string;
 }
+
+export type SyncStatus = 'synced' | 'pending' | 'failed';
 
 interface CellItem {
   id: string;
@@ -21,6 +23,7 @@ interface CellItem {
   address: string;
   certificateNumber: string;
   owner: string;
+  syncStatus: SyncStatus;
 }
 
 type AppState = 'loading' | 'login' | 'main';
@@ -136,12 +139,29 @@ function App() {
     setAppState('main');
   };
 
-  const handleAddItem = (newItem: Omit<CellItem, 'id'>) => {
+  const updateItemSyncStatus = (itemId: string, syncStatus: SyncStatus) => {
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId ? { ...item, syncStatus } : item
+      )
+    );
+  };
+
+  const handleAddItem = (newItem: Omit<CellItem, 'id' | 'syncStatus'>) => {
     const item: CellItem = {
       id: `item-${Date.now()}`,
       ...newItem,
+      syncStatus: 'pending',
     };
     setItems((prev) => [...prev, item]);
+
+    if (config?.API_ENDPOINT_CONFIG) {
+      // Simulate API call
+      setTimeout(() => {
+        const isSuccess = Math.random() > 0.2; // 80% success rate
+        updateItemSyncStatus(item.id, isSuccess ? 'synced' : 'failed');
+      }, 2000);
+    }
   };
 
   const selectedItem = items.find((item) => item.id === selectedItemId);
@@ -248,8 +268,9 @@ function App() {
       <FloatingBubble
         authMode={authMode}
         onAdd={handleAddItem}
-        uploadEnabled={config?.UPLOAD_API_CONFIG ?? false}
+        apiEnabled={config?.API_ENDPOINT_CONFIG ?? false}
         onLoginRequest={() => setAppState('login')}
+        itemsLength={items.length}
       />
     </div>
   );

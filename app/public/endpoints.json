@@ -1,6 +1,6 @@
 {
     "IDENTITY_PROVIDER_CONFIG": false,
-    "UPLOAD_API_CONFIG": false,
-    "uploadEndpoint": "PLACEHOLDER_UPLOAD_URL",
+    "API_ENDPOINT_CONFIG": false,
+    "apiEndpoint": "PLACEHOLDER_API_URL",
     "authEndpoint": "PLACEHOLDER_AUTH_URL"
   }
