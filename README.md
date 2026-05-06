@@ -1,4 +1,4 @@
-# Serverless driven mechine learning project
+# Serverless driven machine learning project
 ## I/ Introduction to Valumind Project
 **User Flow Summary:**
 * Login to appraiser page (bank) or valumind page (borrower)
